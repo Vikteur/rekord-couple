@@ -13,6 +13,19 @@ append-only view of just the friends' top 20.
 This repo is a static single-page app. It holds no secrets and no state; every
 write goes to the API.
 
+## The design
+
+Built to **Claude Design turn 9** — mockups 9a–9h in the Rekord Match lookbook:
+warm paper, Playfair Display headlines, one question per page, and the progress
+dashes at the foot of the screen.
+
+It shares nothing with the DJ app's look. `rekord-dj` is a cool-grey instrument
+you stare at in a booth; this is an invitation two people fill in on the couch,
+so `src/styles/tokens.css` is its own palette and does not track the DJ app's.
+There is deliberately **no light/dark switch**: the design exists in one warm
+paper look, and a wedding invitation that flips to black at night is a
+different object.
+
 ## The three repos
 
 | Repo | What it holds |

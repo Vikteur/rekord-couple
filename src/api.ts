@@ -144,6 +144,9 @@ export class GuestApi {
     const { results } = await this.request<{ results: SongHit[] }>(
       `/search?q=${encodeURIComponent(q)}`,
     );
-    return results;
+    // A body without `results` is a broken server, but the typeahead must not
+    // take the whole page down with it — an empty list still lets the couple
+    // keep what they typed.
+    return results ?? [];
   }
 }

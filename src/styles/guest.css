@@ -1,302 +1,200 @@
 /* --------------------------------------------------------------------------
- * Guest intake flow (magic links, /g/<token>) — the couple's and friends'
- * screens. Same tokens as the DJ app, but a single centred column tuned for
- * phones: guests fill this in from the couch or the café.
+ * The couple + friends intake, built to Claude Design turn 9 (mockups 9a–9h).
+ *
+ * The shape of every page: a thin meta bar at the very top (their names left,
+ * the save state right), one centred column of content held in the middle of
+ * the viewport, a bare "Back" link and a pill "Next" beneath it, and the
+ * progress dashes pinned to the bottom of the screen.
  * ------------------------------------------------------------------------ */
 
 .guest-shell {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--sidebar-bg);
+  background: var(--ground);
 }
+
+/* ------------------------------------------------------------- the top bar */
 
 .g-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--sidebar-border);
-  background: var(--bg);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-.g-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-.g-brand-name {
-  font-family: var(--font-brand);
-  font-weight: 700;
-  font-size: 13.5px;
-  color: var(--heading);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 32px 0;
+  flex: none;
 }
 .g-head-names {
-  flex: 1;
-  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: center;
-  font-size: 12px;
-  color: var(--muted-3);
-}
-.g-head .save-chip {
-  margin-left: auto;
-}
-.g-head-names + .save-chip {
-  margin-left: 0;
 }
 
-/* autosave chip */
+/* "saved just now ✓" — the reassurance the whole flow rests on. */
 .save-chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--faint);
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--muted-4);
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius-pill);
-  padding: 4px 10px;
-  white-space: nowrap;
-  background: var(--card);
 }
-.save-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ok);
+.save-chip.save-error {
+  color: #a2543f;
 }
-.save-saving .save-dot {
-  background: var(--accent);
-  animation: save-pulse 1s ease-in-out infinite;
-}
-.save-retrying {
-  color: var(--danger-text);
-  border-color: var(--danger);
-}
-.save-retrying .save-dot {
-  background: var(--danger);
-  animation: save-pulse 1s ease-in-out infinite;
-}
-@keyframes save-pulse {
-  50% {
-    opacity: 0.35;
-  }
-}
+
+/* ------------------------------------------------------------ the column */
 
 .g-main {
-  width: 100%;
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 18px 14px 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
   flex: 1;
-}
-
-/* progress dots */
-.g-progress {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 4px;
-}
-.g-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  border: 0;
-  padding: 0;
-  background: var(--meta-faint);
-  cursor: pointer;
-}
-.g-dot.seen {
-  background: var(--muted-5);
-}
-.g-dot.active {
-  background: var(--accent);
-  transform: scale(1.35);
-}
-.g-progress-label {
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--muted-5);
-}
-
-/* the page card */
-.g-card {
-  background: var(--bg);
-  border: 1px solid var(--border-2);
-  border-radius: 14px;
-  box-shadow: 0 2px 10px var(--card-shadow);
-  padding: 26px 22px 30px;
-}
-.g-screen {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 32px 24px;
+}
+.g-col {
+  width: 100%;
+  max-width: var(--column);
+}
+.g-col-wide {
+  max-width: var(--column-wide);
+}
+/* Welcome, reveal and done are centred compositions rather than forms. */
+.g-col-center {
+  text-align: center;
+}
+
+.g-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 14px;
 }
 .g-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 40px;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  color: var(--ink);
   margin: 0;
-  font-family: var(--font-brand);
-  font-size: 25px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--heading);
+  text-wrap: balance;
 }
-.g-subtitle {
-  margin: 14px 0 0;
-  font-family: var(--font-brand);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--heading);
+.g-title-lg {
+  font-size: 52px;
 }
 .g-lead {
-  margin: 0;
-  color: var(--muted-2);
-  font-size: 13.5px;
+  color: var(--ink-body);
+  margin: 14px 0 0;
+  max-width: 62ch;
   line-height: 1.6;
 }
-.g-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--muted-2);
-  margin-top: 6px;
+.g-col-center .g-lead {
+  margin-left: auto;
+  margin-right: auto;
 }
-.g-required,
-.g-optional {
+.g-body {
+  margin-top: 30px;
+}
+
+/* ---------------------------------------------------------- 9a · welcome */
+
+/*
+ * The names and the date are the couple's own, prefilled by their DJ — but
+ * they must stay editable, so they are inputs styled as the display type they
+ * replace. The gold underline only appears on hover/focus, which is what tells
+ * you they can be changed at all.
+ */
+.g-names-input {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 27px;
+  line-height: 1.3;
+  color: var(--ink);
+  text-align: center;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  padding: 2px 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.g-date-input {
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  border-radius: var(--radius-pill);
-  padding: 2px 7px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  padding: 4px 2px;
+  margin-top: 6px;
+  outline: none;
+  transition: border-color 0.15s;
 }
-.g-required {
-  background: var(--badge-blue-bg);
-  color: var(--badge-blue-text);
+.g-names-input::placeholder,
+.g-date-input::placeholder {
+  color: var(--gold-pale);
 }
-.g-optional {
-  background: var(--badge-grey-bg);
-  color: var(--badge-grey-text);
+.g-names-input:hover,
+.g-date-input:hover,
+.g-names-input:focus,
+.g-date-input:focus {
+  border-bottom-color: var(--gold-soft);
 }
-/* 16px inputs: below that iOS zooms the whole page on focus */
-.g-input,
-.g-textarea,
-.songsearch-input {
-  font-size: 16px;
-}
-.g-textarea {
-  height: 96px;
-}
-.g-count {
-  font-size: 11px;
-  color: var(--muted-5);
-  margin: 0;
-}
-.g-full {
-  margin: 0;
-  color: var(--ok-text);
-  font-weight: 600;
-  font-size: 13px;
-}
-.g-slot {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* bottom nav */
-.g-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.g-back {
-  min-width: 84px;
-}
-.g-next {
-  min-width: 116px;
-  padding: 10px 18px;
-  font-size: 13px;
-}
-.g-nav-hint {
-  flex: 1;
-  text-align: right;
-  font-size: 11px;
-  color: var(--muted-4);
-}
-
-/* start-preference options */
-.g-options {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.g-option {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border: 1px solid var(--border-1);
-  background: var(--card);
-  border-radius: var(--radius-card);
-  padding: 11px 13px;
+/* The native date picker indicator, toned down into the palette. */
+.g-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0.35;
   cursor: pointer;
-  text-align: left;
 }
-.g-option:disabled {
-  opacity: 0.5;
-  cursor: default;
+/* The same slot rendered as the written-out date, before you click to edit. */
+button.g-date-input {
+  cursor: pointer;
 }
-.g-option.active {
-  border-color: transparent;
-  box-shadow: 0 0 0 1.5px var(--accent), 0 2px 8px var(--accent-shadow);
+.g-welcome-headline {
+  margin-top: 32px;
 }
-.g-option-text {
-  display: flex;
-  flex-direction: column;
-}
-.g-option-label {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--text);
-}
-.g-option-sub {
-  font-size: 11px;
-  color: var(--muted-4);
+.g-welcome-cta {
+  margin-top: 36px;
 }
 
-/* typeahead */
+/* --------------------------------------------------------- the song search */
+
 .songsearch {
   position: relative;
-  flex: 1;
-  min-width: 0;
 }
 .songsearch-box {
   display: flex;
   align-items: center;
-  gap: 8px;
-  border: 1px solid var(--border-1);
+  gap: 10px;
+  border: 1px solid var(--gold-soft);
   border-radius: var(--radius);
   background: var(--card);
-  padding: 9px 11px;
+  padding: 0 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 .songsearch-box:focus-within {
-  border-color: var(--accent);
-}
-.songsearch-compact .songsearch-box {
-  padding: 6px 9px;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(176, 141, 87, 0.1);
 }
 .songsearch-icon {
-  color: var(--muted-5);
+  color: var(--gold-soft);
   flex: none;
 }
 .songsearch-input {
@@ -304,64 +202,78 @@
   min-width: 0;
   border: 0;
   background: transparent;
-  color: var(--text);
   outline: none;
+  padding: 15px 0;
+  font-size: 15px;
+  color: var(--ink);
 }
 .songsearch-input::placeholder {
-  color: var(--muted-6);
+  color: var(--faint);
+}
+
+/* Inside a numbered table row the box loses its chrome and becomes the line. */
+.songsearch-compact .songsearch-box {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+.songsearch-compact .songsearch-icon {
+  display: none;
 }
 .songsearch-compact .songsearch-input {
-  font-size: 14px;
+  padding: 9px 0;
+  font-size: 14.5px;
 }
-.songsearch-clear {
-  padding: 2px;
-}
+
 .songsearch-drop {
   position: absolute;
-  top: calc(100% + 4px);
+  z-index: 30;
   left: 0;
   right: 0;
-  z-index: 40;
+  top: calc(100% + 6px);
   background: var(--card);
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-card);
-  box-shadow: 0 10px 28px var(--panel-shadow);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 14px 40px rgba(43, 38, 32, 0.11);
   overflow: hidden;
-  max-height: 320px;
+  max-height: 340px;
   overflow-y: auto;
 }
 .songsearch-note {
-  padding: 9px 12px;
-  font-size: 11.5px;
-  color: var(--muted-4);
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 13px;
 }
 .songsearch-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   border: 0;
   background: transparent;
-  padding: 8px 12px;
-  cursor: pointer;
   text-align: left;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--rule);
+}
+.songsearch-item:last-child {
+  border-bottom: 0;
 }
 .songsearch-item.active {
-  background: var(--badge-blue-bg);
+  background: var(--card-tint);
 }
 .songsearch-art {
-  width: 34px;
-  height: 34px;
-  flex: none;
-  border-radius: var(--radius-tile);
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
   object-fit: cover;
-  background: var(--border-4);
+  flex: none;
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
 }
 .songsearch-art-empty {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted-6);
+  background: linear-gradient(135deg, #e3d7c3, #cbb492);
 }
 .songsearch-text {
   flex: 1;
@@ -370,75 +282,67 @@
   flex-direction: column;
 }
 .songsearch-title {
+  color: var(--ink);
   font-weight: 500;
-  font-size: 13px;
-  color: var(--text);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .songsearch-artist {
-  font-size: 11px;
-  color: var(--muted-4);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .songsearch-time {
-  font-size: 10.5px;
-  color: var(--muted-5);
+  font-size: 11.5px;
+  color: var(--faint);
   flex: none;
 }
 .songsearch-freetext {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  border-top: 1px dashed var(--border-2);
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--accent-text);
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  background: var(--card-tint);
 }
 .songsearch-freetext-sub {
-  font-size: 10.5px;
-  font-weight: 400;
-  color: var(--muted-5);
+  display: block;
+  color: var(--faint);
+  font-size: 12px;
+}
+.songsearch-clear {
+  flex: none;
 }
 
-/* a filled song row */
+/* ------------------------------------------------------------- song cards */
+
+/* The chosen song, as it looks once it is locked in (9b, 9c). */
 .songcard {
   display: flex;
   align-items: center;
-  gap: 10px;
-  border: 1px solid var(--border-2);
+  gap: 14px;
   background: var(--card);
-  border-radius: var(--radius-card);
-  padding: 7px 10px;
-  min-width: 0;
-  flex: 1;
-}
-.songcard-big {
-  padding: 12px;
-}
-.songcard-big .songcard-art {
-  width: 52px;
-  height: 52px;
-}
-.songcard-big .songcard-title {
-  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
 }
 .songcard-art {
-  width: 34px;
-  height: 34px;
-  flex: none;
-  border-radius: var(--radius-tile);
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
   object-fit: cover;
-  background: var(--border-4);
+  flex: none;
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
 }
 .songcard-art-empty {
-  display: inline-flex;
+  background: linear-gradient(135deg, #e3d7c3, #cbb492);
+  display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--muted-6);
+  color: #fff;
+  font-size: 17px;
 }
 .songcard-text {
   flex: 1;
@@ -447,198 +351,491 @@
   flex-direction: column;
 }
 .songcard-title {
-  font-weight: 500;
-  font-size: 13px;
-  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .songcard-sub {
-  font-size: 11px;
-  color: var(--muted-4);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+/* "LOCKED IN ✓" / "SECOND SONG ✓" — the badge that says this one is settled. */
+.songcard-status {
+  flex: none;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--fill);
+  border-radius: var(--radius-pill);
+  padding: 6px 13px;
 }
 .songcard-chip {
   flex: none;
   font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-  background: var(--badge-grey-bg);
-  color: var(--badge-grey-text);
+  font-size: 10.5px;
+  color: var(--gold);
+  background: var(--fill);
   border-radius: var(--radius-pill);
-  padding: 2px 7px;
+  padding: 3px 9px;
 }
 .songcard-time {
-  font-size: 10.5px;
-  color: var(--muted-5);
   flex: none;
+  font-size: 12px;
+  color: var(--faint);
 }
 .songcard-move {
   display: inline-flex;
   flex: none;
 }
-.songcard-move .icon-btn {
-  padding: 3px;
+
+/* --------------------------------------------------- 9b · start / end pills */
+
+.g-pillrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
 }
-.songcard-remove {
-  flex: none;
-  color: var(--muted-5);
+.g-pillrow-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin-right: 2px;
 }
-.songcard-remove:hover {
-  color: var(--danger-text);
+.g-pill {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink-body);
+  border-radius: var(--radius-pill);
+  padding: 9px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.g-pill:hover:not(:disabled) {
+  border-color: var(--gold-soft);
+}
+.g-pill.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  font-weight: 700;
+}
+.g-pill:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
-/* numbered fill-in table */
-.songtable {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* The note to the DJ: dashed, unfilled — an aside, not another form field. */
+.g-note {
+  width: 100%;
+  margin-top: 18px;
+  border: 1px dashed var(--gold-pale);
+  border-radius: 8px;
+  background: transparent;
+  padding: 13px 16px;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  resize: vertical;
+  min-height: 52px;
+  line-height: 1.6;
+  transition: border-color 0.15s;
 }
+.g-note::placeholder {
+  color: var(--faint);
+}
+.g-note:hover:not(:disabled),
+.g-note:focus {
+  border-color: var(--gold-soft);
+}
+.g-note:disabled {
+  opacity: 0.55;
+}
+
+/* A quiet right-aligned "skip" affordance, e.g. "Two is plenty →". */
+.g-skip {
+  display: block;
+  margin: 10px 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--gold);
+  font-size: 13.5px;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+.g-skip:hover {
+  color: var(--ink);
+}
+
+/* ------------------------------------------------ 9d/9f/9h · numbered table */
+
+/*
+ * Twenty lines read as two columns of ten, filled downwards — 01–10 on the
+ * left, 11–20 on the right, the way a printed list numbers itself. The columns
+ * are real elements rather than a grid flow, so the numbering never depends on
+ * how the browser happens to fill cells.
+ */
+.songtable {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 14px 22px;
+  display: flex;
+  gap: 32px;
+}
+.songtable-col {
+  flex: 1;
+  min-width: 0;
+}
+/* Five must-plays and the never list are short enough for a single column. */
+.songtable-single {
+  display: block;
+}
+
 .songtable-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
+  min-height: 33px;
+  border-bottom: 1px solid var(--rule);
+  padding: 0 4px;
+}
+/* The last row of each column carries no rule. */
+.songtable-row:last-child {
+  border-bottom: 0;
+}
+.songtable-row.filling {
+  background: var(--card-tint);
 }
 .songtable-num {
-  width: 20px;
   flex: none;
+  width: 20px;
+  font-size: 11.5px;
+  color: var(--faint);
   text-align: right;
-  font-size: 10.5px;
-  color: var(--muted-6);
+  user-select: none;
 }
-.songtable-empty {
-  color: var(--meta-faint);
-  padding: 6px 0;
+/* The never list numbers its rows with a gold ✗ instead (9g). */
+.songtable-cross {
+  flex: none;
+  width: 20px;
+  text-align: center;
+  color: var(--gold-soft);
+  font-size: 13px;
+  user-select: none;
 }
-
-/* never list */
-.blocklist {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
-}
-.blockcard {
-  border-left: 3px solid var(--danger);
-}
-
-/* reveal */
-.reveal-row {
+.songtable-cell {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 5px 0;
-  border-bottom: 1px solid var(--border-4);
 }
-.reveal-row:last-child {
-  border-bottom: 0;
+.songtable-cell .songsearch {
+  flex: 1;
+  min-width: 0;
 }
-.reveal-prefix {
+/* A filled line reads as text, not as a form control. */
+.songtable-value {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  color: var(--ink);
+  padding: 8px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.songtable-value .songtable-artist {
+  color: var(--ink-body);
+}
+/* An untouched row further down the list: click it to type there. */
+.songtable-open {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 9px 0;
+  min-height: 33px;
+  cursor: text;
+  color: var(--faint);
+  font-size: 14.5px;
+}
+.songtable-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.songtable-row:hover .songtable-actions,
+.songtable-actions:focus-within {
+  opacity: 1;
+}
+.songtable-count {
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--muted-5);
-}
-.reveal-note {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: var(--muted-3);
-  line-height: 1.5;
-}
-.reveal-grid {
-  display: flex;
-  flex-direction: column;
+  font-size: 11.5px;
+  color: var(--faint);
 }
 
-/* copy-link box */
+/* ------------------------------------------------------------ 9e · reveal */
+
+/*
+ * The two halves lean toward the centre line, so the list reads as one shape
+ * rather than two lists side by side. First half left, second half right —
+ * explicit columns, so it reads top-to-bottom like the mockup.
+ */
+.reveal-grid {
+  display: flex;
+  gap: 46px;
+  margin-top: 28px;
+}
+.reveal-col {
+  flex: 1;
+  min-width: 0;
+}
+.reveal-col:first-child {
+  text-align: right;
+}
+.reveal-col:last-child {
+  text-align: left;
+}
+.reveal-row {
+  padding: 3px 0;
+}
+.reveal-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink);
+}
+.reveal-artist {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--faint);
+  margin-left: 7px;
+}
+.reveal-line {
+  margin-top: 26px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--muted);
+}
+.reveal-section {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 30px 0 10px;
+}
+
+/* --------------------------------------------------- 9f · the share link */
+
 .copylink {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 16px;
 }
 .copylink-input {
   flex: 1;
   min-width: 0;
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--muted-2);
+  font-size: 12.5px;
+  color: var(--muted);
 }
 .copylink .btn {
   flex: none;
 }
 
-/* finale */
+/* ------------------------------------------------------------ 9h · finale */
+
+.g-fieldlabel {
+  display: block;
+  margin: 30px 0 12px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
 .g-linkrow {
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
 }
-.g-linkrow .g-input {
+.g-linkrow .songsearch,
+.g-linkrow .input {
   flex: 1;
-  min-width: 0;
+  min-width: 240px;
 }
-.g-linkitem {
-  display: flex;
+/* Each pasted playlist becomes a small chip rather than another row. */
+.g-linkchip {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius);
-  padding: 7px 11px;
+  border: 1px solid var(--gold-pale);
+  border-radius: var(--radius-pill);
+  padding: 8px 8px 8px 16px;
+  background: var(--card);
+  max-width: 100%;
 }
-.g-linkitem a {
-  flex: 1;
-  min-width: 0;
+.g-linkchip a {
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--accent-text);
-  font-size: 12px;
-  text-decoration: none;
+  max-width: 240px;
 }
-.g-linkitem a:hover {
-  text-decoration: underline;
+.g-linkchip a:hover {
+  color: var(--ink);
 }
-.g-finish {
-  margin-top: 18px;
-}
-.g-finish-btn {
-  font-size: 14px;
-  padding: 13px;
+.g-linkchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
 }
 
-/* done + problems */
-.g-done {
-  align-items: center;
-  text-align: center;
-  padding: 26px 0;
-}
-.g-done-mark {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: var(--ok-bg);
-  color: var(--ok-text);
-  font-size: 28px;
+/* ---------------------------------------------------------------- footer */
+
+.g-nav {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 34px;
+}
+.g-nav-left {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  min-width: 0;
+}
+.g-back {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 0;
+}
+.g-back:hover:not(:disabled) {
+  color: var(--ink);
+}
+.g-back:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.g-nav-hint {
+  color: var(--gold);
+  font-size: 13px;
+}
+
+/* The dashes at the foot of the screen: where you are in the eight pages. */
+.g-progress {
+  display: flex;
   justify-content: center;
+  gap: 8px;
+  padding: 18px 32px 30px;
+  flex: none;
+}
+.g-dot {
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+  border: 0;
+  padding: 0;
+  background: var(--gold-pale);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.g-dot.seen {
+  background: var(--gold-soft);
+}
+.g-dot.active {
+  background: var(--gold);
+}
+.g-dot:hover {
+  background: var(--gold-soft);
+}
+
+/* ------------------------------------------------------- done and problems */
+
+.g-done-mark {
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: var(--gold);
+  margin-bottom: 10px;
 }
 .g-problem {
   text-align: center;
-  padding: 44px 24px;
 }
 
-@media (max-width: 480px) {
-  .g-card {
-    padding: 20px 14px 24px;
+/* ------------------------------------------------------------------ phones */
+
+@media (max-width: 720px) {
+  .g-head {
+    padding: 16px 20px 0;
+  }
+  .g-main {
+    padding: 28px 20px 16px;
+    justify-content: flex-start;
   }
   .g-title {
-    font-size: 21px;
+    font-size: 30px;
   }
-  .g-head-names {
-    display: none;
+  .g-title-lg {
+    font-size: 36px;
   }
-  .songcard-time {
-    display: none;
+  .g-names-input {
+    font-size: 23px;
   }
+  /* Two columns of twenty lines do not fit a phone; stack them. */
+  .songtable,
+  .reveal-grid {
+    flex-direction: column;
+    gap: 0;
+  }
+  .songtable {
+    padding: 8px 16px;
+  }
+  /* Stacked, the left column's last row is mid-list again and wants its rule. */
+  .songtable-col:first-child .songtable-row:last-child {
+    border-bottom: 1px solid var(--rule);
+  }
+  .reveal-col:first-child,
+  .reveal-col:last-child {
+    text-align: center;
+  }
+  .g-nav {
+    margin-top: 26px;
+  }
+}
+
+/* --------------------------------------------------------------- utilities */
+
+.g-count {
+  margin-top: 14px;
+}
+.g-slot {
+  margin-top: 14px;
+}
+.reveal-line-tight {
+  margin-top: 8px;
 }

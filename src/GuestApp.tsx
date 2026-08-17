@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { formatWeddingDate } from './format';
 import { SaveChip, SongTable } from './parts';
 import {
   DoneScreen,
@@ -26,17 +27,17 @@ const STEPS = [
 ];
 const DONE_STEP = STEPS.length;
 
-function GuestLogo() {
+/**
+ * The bar across the top of every page: their names on the left, the save
+ * state on the right. There is no logo and no product name — the couple was
+ * sent a link about their own wedding, not to a piece of software.
+ */
+function GuestHead({ names }: { names?: string }) {
   return (
-    <span className="g-brand">
-      <span className="logo-mark" aria-hidden>
-        <span style={{ height: 7 }} />
-        <span style={{ height: 12 }} />
-        <span style={{ height: 5 }} />
-        <span style={{ height: 9, opacity: 0.72 }} />
-      </span>
-      <span className="g-brand-name">Rekord Match</span>
-    </span>
+    <header className="g-head">
+      <span className="g-head-names">{names || ''}</span>
+      {names !== undefined && <SaveChip />}
+    </header>
   );
 }
 
@@ -51,11 +52,9 @@ export function ProblemView({ problem }: { problem: LinkProblem }) {
           : "This link doesn't work";
   return (
     <div className="guest-shell">
-      <header className="g-head">
-        <GuestLogo />
-      </header>
+      <GuestHead />
       <main className="g-main">
-        <div className="g-card g-problem">
+        <div className="g-col g-col-center g-problem">
           <h1 className="g-title">{title}</h1>
           <p className="g-lead">{problem.message}</p>
         </div>
@@ -77,23 +76,18 @@ function FriendsView() {
   const count = store.listOf('friends_top20').length;
   return (
     <div className="guest-shell">
-      <header className="g-head">
-        <GuestLogo />
-        <SaveChip />
-      </header>
+      <GuestHead names={data.names} />
       <main className="g-main">
-        <div className="g-card">
-          <div className="g-screen">
-            <h1 className="g-title">Build {data.names || 'the couple'}'s party</h1>
-            <p className="g-lead">
-              You and the other friends share twenty spots for the wedding
-              {data.wedding_date ? ` on ${data.wedding_date}` : ''}. Type a song into any
-              free row — everyone sees the list grow, and every pick is saved instantly.
-            </p>
-            <p className="g-count mono">{count} / 20</p>
-            {count >= 20 && (
-              <p className="g-full">All twenty spots are taken — the list is complete! 🎉</p>
-            )}
+        <div className="g-col g-col-wide">
+          <h1 className="g-title">
+            The twenty songs {data.names || 'the couple'} can't sit down to.
+          </h1>
+          <p className="g-lead">
+            You and their other friends share twenty spots
+            {data.wedding_date ? ` for ${formatWeddingDate(data.wedding_date)}` : ''}. Type into any free line —
+            everyone sees the list grow, and every pick is saved the moment you make it.
+          </p>
+          <div className="g-body">
             <SongTable
               kind="friends_top20"
               rows={20}
@@ -102,11 +96,11 @@ function FriendsView() {
               canReorder={false}
               showSource
             />
-            <p className="hint">
-              Songs from the other friends appear here automatically. Picks can't be
-              removed or reshuffled from this link — the couple curates the final list.
-            </p>
           </div>
+          <p className="songtable-count g-count">
+            {count} of 20
+            {count >= 20 ? ' — every spot is taken 🎉' : ' · the couple keeps the final word'}
+          </p>
         </div>
       </main>
     </div>
@@ -126,12 +120,10 @@ function CoupleWizard({ token }: { token: string }) {
     window.scrollTo({ top: 0 });
   }, [step, storageKey]);
 
+  const go = (next: number) => setStep(Math.max(0, Math.min(DONE_STEP, next)));
+
   /** What still blocks "Next" on this step, if anything. */
   function blockedHint(): string | null {
-    if (step === 0) {
-      if (!data.names.trim()) return 'Fill in your names to begin.';
-      if (!data.wedding_date) return 'Pick your wedding date to begin.';
-    }
     if (step === 1 && store.listOf('opening_dance').length === 0) {
       return 'Choose your opening dance to continue.';
     }
@@ -143,64 +135,68 @@ function CoupleWizard({ token }: { token: string }) {
   const hint = blockedHint();
 
   const screen = [
-    <WelcomeScreen key="welcome" />,
+    <WelcomeScreen key="welcome" onBegin={() => go(1)} />,
     <OpeningScreen key="opening" />,
-    <SecondThirdScreen key="secondthird" />,
+    <SecondThirdScreen key="secondthird" onSkip={() => go(3)} />,
     <TopTwentyScreen key="top20" />,
     <RevealScreen key="reveal" />,
     <FriendsScreen key="friends" />,
     <NeverScreen key="never" />,
-    <FinaleScreen key="finale" onFinish={() => setStep(DONE_STEP)} />,
-    <DoneScreen key="done" onReview={() => setStep(0)} />,
+    <FinaleScreen key="finale" onFinish={() => go(DONE_STEP)} />,
+    <DoneScreen key="done" onReview={() => go(0)} />,
+  ][step];
+
+  // The invitation carries its own "Begin", and the finale its own "Finish".
+  const showNav = step > 0 && step < STEPS.length - 1;
+  // The twenty-line tables and the reveal need the wider column; so does their nav.
+  const wide = step === 3 || step === 4 || step === 5;
+
+  /** The next page, named — the mockups promise what is coming, not "Next". */
+  const nextLabel = [
+    '',
+    'Next: a second song, maybe a third →',
+    'Next: your top twenty →',
+    'Next →',
+    'Continue →',
+    'Next →',
+    'Next →',
   ][step];
 
   return (
     <div className="guest-shell">
-      <header className="g-head">
-        <GuestLogo />
-        <span className="g-head-names">{data.names}</span>
-        <SaveChip />
-      </header>
+      <GuestHead names={data.names} />
       <main className="g-main">
-        {step < DONE_STEP && (
-          <nav className="g-progress" aria-label="Steps">
-            {STEPS.map((label, index) => (
-              <button
-                key={label}
-                className={`g-dot ${index === step ? 'active' : ''} ${index < step ? 'seen' : ''}`}
-                title={label}
-                aria-label={`${label} (step ${index + 1} of ${STEPS.length})`}
-                onClick={() => setStep(index)}
-              />
-            ))}
-            <span className="g-progress-label">
-              {step + 1} / {STEPS.length} · {STEPS[step]}
-            </span>
-          </nav>
-        )}
-        <div className="g-card">{screen}</div>
-        {step < DONE_STEP && (
-          <footer className="g-nav">
-            <button
-              className="btn g-back"
-              disabled={step === 0}
-              onClick={() => setStep((current) => Math.max(0, current - 1))}
-            >
-              Back
-            </button>
-            <span className="g-nav-hint">{hint ?? ''}</span>
-            {step < STEPS.length - 1 && (
-              <button
-                className="btn btn-primary g-next"
-                disabled={hint !== null}
-                onClick={() => setStep((current) => current + 1)}
-              >
-                {step === 0 ? 'Begin' : 'Next'}
+        {screen}
+        {showNav && (
+          <div className={`g-col ${wide ? 'g-col-wide' : ''}`}>
+            <div className="g-nav">
+              <span className="g-nav-left">
+                <button className="g-back" onClick={() => go(step - 1)}>
+                  ← Back
+                </button>
+                {hint && <span className="g-nav-hint">{hint}</span>}
+              </span>
+              <button className="btn" disabled={hint !== null} onClick={() => go(step + 1)}>
+                {nextLabel}
               </button>
-            )}
-          </footer>
+            </div>
+          </div>
         )}
       </main>
+      {step < DONE_STEP && (
+        <nav className="g-progress" aria-label="Steps">
+          {STEPS.map((label, index) => (
+            <button
+              key={label}
+              className={`g-dot ${index === step ? 'active' : ''} ${index < step ? 'seen' : ''}`}
+              title={label}
+              aria-label={`${label} (step ${index + 1} of ${STEPS.length})`}
+              aria-current={index === step ? 'step' : undefined}
+              onClick={() => go(index)}
+            />
+          ))}
+        </nav>
+      )}
     </div>
   );
 }
@@ -211,11 +207,9 @@ function GuestInner({ token }: { token: string }) {
   if (!store.data) {
     return (
       <div className="guest-shell">
-        <header className="g-head">
-          <GuestLogo />
-        </header>
+        <GuestHead />
         <main className="g-main">
-          <div className="g-card g-problem">
+          <div className="g-col g-col-center">
             <p className="g-lead">Loading…</p>
           </div>
         </main>

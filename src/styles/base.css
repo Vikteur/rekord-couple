@@ -1,10 +1,8 @@
 /* --------------------------------------------------------------------------
- * Reset + the handful of primitives the guest screens share with the DJ app
- * (.btn, .input, .hint, .logo-mark …). Extracted from the DJ app's app.css so
- * this repo builds without it — keep the two in sync when a token changes.
+ * Reset and the handful of primitives every screen shares. Written for this
+ * app's own design (tokens.css) — it no longer mirrors anything in rekord-dj.
  * ------------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------------ reset */
 * {
   box-sizing: border-box;
 }
@@ -15,10 +13,11 @@ body,
 }
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
+  background: var(--ground);
+  color: var(--ink-body);
   font-family: var(--font-ui);
-  font-size: 12.5px;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -31,125 +30,120 @@ select,
 textarea {
   font-family: inherit;
   font-size: inherit;
+  color: inherit;
 }
 
 /* ------------------------------------------------------------- primitives */
+
 .mono {
   font-family: var(--font-mono);
 }
 .muted {
-  color: var(--muted-4);
-}
-.muted-icon {
-  color: var(--muted-5);
-  flex: none;
+  color: var(--muted);
 }
 .warn {
-  color: var(--danger-text);
+  color: #a2543f;
 }
 .error {
-  margin-top: 8px;
-  color: var(--danger-text);
-  font-size: 12px;
+  margin-top: 10px;
+  color: #a2543f;
+  font-size: 13px;
 }
 .hint {
-  margin-top: 6px;
-  color: var(--muted-5);
-  font-size: 11px;
-  line-height: 1.5;
+  margin-top: 8px;
+  color: var(--faint);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-/* buttons */
+/*
+ * Buttons. The default is the outlined pill the mockups use for "Next" and
+ * "Begin"; .btn-primary is the solid ink pill, reserved for the one button
+ * that ends the journey ("Finish your story").
+ */
 .btn {
-  border: 1px solid var(--border-1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
   background: var(--card);
-  color: var(--meta-strongest);
-  border-radius: var(--radius);
-  padding: 7px 13px;
-  font-size: 12px;
+  color: var(--ink);
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.12s, background 0.12s;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 .btn:hover:not(:disabled) {
-  border-color: var(--muted-6);
+  border-color: var(--gold-soft);
 }
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: default;
 }
 .btn-primary {
-  border: 0;
-  background: var(--accent-btn);
+  border-color: var(--ink);
+  background: var(--ink);
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 1px 2px var(--accent-shadow);
+  padding: 12px 26px;
 }
 .btn-primary:hover:not(:disabled) {
-  background: var(--accent-btn-hover);
+  background: #1c1813;
+  border-color: #1c1813;
 }
-.btn-sm {
-  padding: 6px 11px;
-  font-size: 11.5px;
+.btn-quiet {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 0;
 }
-.btn-block {
-  width: 100%;
-  padding: 10px;
-  font-size: 12.5px;
+.btn-quiet:hover:not(:disabled) {
+  border-color: transparent;
+  color: var(--ink);
 }
 .icon-btn {
   border: 0;
   background: transparent;
-  color: var(--muted-4);
+  color: var(--faint);
   cursor: pointer;
   padding: 5px;
-  border-radius: 6px;
+  border-radius: 7px;
   display: inline-flex;
+  transition: color 0.15s, background 0.15s;
 }
-.icon-btn:hover {
-  background: var(--border-4);
-  color: var(--text);
+.icon-btn:hover:not(:disabled) {
+  background: var(--fill);
+  color: var(--ink);
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
-/* inputs */
+/* Inputs: white paper, gold hairline, gold on focus. */
 .input,
-.textarea,
-.search-in {
+.textarea {
   width: 100%;
-  border: 1px solid var(--border-1);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px 10px;
+  padding: 12px 14px;
   background: var(--card);
-  color: var(--text);
+  color: var(--ink);
   outline: none;
+  transition: border-color 0.15s;
+}
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--faint);
 }
 .input:focus,
-.textarea:focus,
-.search-in:focus {
-  border-color: var(--accent);
+.textarea:focus {
+  border-color: var(--gold);
 }
 .textarea {
-  height: 120px;
+  min-height: 120px;
   resize: vertical;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-}
-
-/* brand mark, shown in the guest header */
-.logo-mark {
-  width: 24px;
-  height: 24px;
-  flex: none;
-  border-radius: 7px;
-  background: linear-gradient(135deg, #2e6bff, #6a3dff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-.logo-mark span {
-  width: 2.5px;
-  border-radius: 2px;
-  background: #fff;
-  display: block;
+  line-height: 1.6;
 }

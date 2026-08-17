@@ -1,173 +1,237 @@
 import { useEffect, useState } from 'react';
 import type { StartPref } from './types';
 import { SongSearch } from './SongSearch';
+import { Close } from './components/Icons';
+import { formatWeddingDate } from './format';
 import { CopyLink, RevealRow, SongCard, SongTable } from './parts';
 import { useGuest } from './store';
 
-/* ------------------------------------------------ 1 · welcome (mockup 9a) */
+/**
+ * The eight pages of the intake, built to Claude Design turn 9 (9a–9h).
+ *
+ * Each one asks a single question, in the couple's own language rather than
+ * the DJ's: the headline is the question, the lead explains why it matters,
+ * and the answer is the only control on the page.
+ */
 
-export function WelcomeScreen() {
+/* ------------------------------------------------ 1 · the invitation (9a) */
+
+export function WelcomeScreen({ onBegin }: { onBegin: () => void }) {
   const store = useGuest();
   const data = store.data!;
+  const ready = Boolean(data.names.trim() && data.wedding_date);
+  // A native date field can only render as mm/dd/yyyy, which is not what this
+  // page is for. Show the date written out, and swap in the picker on click.
+  const [editingDate, setEditingDate] = useState(false);
   return (
-    <div className="g-screen">
-      <h1 className="g-title">Welcome!</h1>
-      <p className="g-lead">
-        Let's build the soundtrack of your wedding, one page at a time. Everything you
-        type is <strong>saved automatically</strong> — close this tab whenever you like
-        and come back later with the same link to finish or change your answers.
-      </p>
-      <label className="g-label" htmlFor="g-names">
-        Your names
-      </label>
+    <div className="g-col g-col-center">
       <input
-        id="g-names"
-        className="input g-input"
-        placeholder="e.g. Sofie & Jan"
+        className="g-names-input"
+        aria-label="Your names"
+        placeholder="Your names"
         value={data.names}
         onChange={(event) => store.patchCouple({ names: event.target.value })}
       />
-      <label className="g-label" htmlFor="g-date">
-        Wedding date
-      </label>
-      <input
-        id="g-date"
-        type="date"
-        className="input g-input"
-        placeholder="e.g. 2026-09-19"
-        value={data.wedding_date}
-        onChange={(event) => store.patchCouple({ wedding_date: event.target.value }, false)}
-      />
-      <p className="hint">Your link stays active until the day after the wedding.</p>
+      {editingDate || !data.wedding_date ? (
+        <input
+          type="date"
+          className="g-date-input"
+          aria-label="Wedding date"
+          autoFocus={editingDate}
+          value={data.wedding_date}
+          onBlur={() => setEditingDate(false)}
+          onChange={(event) => store.patchCouple({ wedding_date: event.target.value }, false)}
+        />
+      ) : (
+        <button className="g-date-input" onClick={() => setEditingDate(true)}>
+          {formatWeddingDate(data.wedding_date)}
+        </button>
+      )}
+      <h1 className="g-title g-title-lg g-welcome-headline">
+        Let's build the beautiful story of your wedding.
+      </h1>
+      <p className="g-lead">
+        Your DJ set this page up just for the two of you. Eight small questions, about ten
+        minutes together on the couch, and every answer flows straight into the set played
+        that night.
+      </p>
+      <div className="g-welcome-cta">
+        <button className="btn" disabled={!ready} onClick={onBegin}>
+          Begin →
+        </button>
+      </div>
+      <p className="hint">
+        {ready
+          ? 'Everything saves as you type. Come back to this link any time.'
+          : 'Add your names and your wedding date to begin.'}
+      </p>
     </div>
   );
 }
 
-/* ------------------------------------------ 2 · opening dance (mockup 9b) */
+/* ------------------------------------------------ 2 · opening dance (9b) */
 
-const START_OPTIONS: { value: StartPref; label: string; sub: string }[] = [
-  { value: 'top', label: 'From the top', sub: 'the very first note, the classic way' },
-  { value: 'chorus', label: 'From the chorus', sub: 'start where everyone knows it' },
-  { value: 'fade', label: 'Fade in', sub: 'ease in softly mid-song' },
+const START_OPTIONS: { value: StartPref; label: string }[] = [
+  { value: 'top', label: 'From the top' },
+  { value: 'chorus', label: 'From the chorus' },
+  { value: 'fade', label: 'Fade it in' },
 ];
 
 export function OpeningScreen() {
   const store = useGuest();
   const entry = store.listOf('opening_dance')[0];
   return (
-    <div className="g-screen">
-      <h1 className="g-title">Your opening dance</h1>
-      <p className="g-lead">The one song everything opens with. Which is it?</p>
-      {entry ? (
-        <SongCard entry={entry} big onRemove={() => store.removeEntry(entry.uid)} />
-      ) : (
+    <div className="g-col">
+      <h1 className="g-title">Which song opens your first dance?</h1>
+      <p className="g-lead">
+        Most couples open the party with a wedding dance. The one you two will remember
+        forever, and your DJ treats it with care.
+      </p>
+      <div className="g-body">
+        {/*
+          The search stays on the page after a pick (9b): changing your mind
+          should be one search away, not a delete followed by a search. Picking
+          again replaces the entry in place, so the note and the start
+          preference below survive it.
+        */}
         <SongSearch
-          autoFocus
-          placeholder="e.g. Thinking Out Loud – Ed Sheeran"
+          autoFocus={!entry}
+          placeholder="Search a song, or paste a Spotify link…"
           search={store.search}
           searchAvailable={store.data?.search_available ?? false}
-          onPick={(pick) => store.pickSong('opening_dance', 0, pick)}
+          onPick={(pick) => store.pickSong('opening_dance', 0, pick, entry?.uid)}
         />
-      )}
+        {entry && (
+          <div className="g-slot">
+            <SongCard
+              entry={entry}
+              status="Locked in"
+              onRemove={() => store.removeEntry(entry.uid)}
+            />
+          </div>
+        )}
 
-      <h2 className="g-subtitle">How should it start?</h2>
-      {!entry && <p className="hint">Pick your song first, then choose how it starts.</p>}
-      <div className="g-options">
-        {START_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            className={`g-option ${entry?.start_pref === option.value ? 'active' : ''}`}
-            disabled={!entry}
-            onClick={() => entry && store.setEntryExtras(entry.uid, { start_pref: option.value })}
-          >
-            <span className={`radio ${entry?.start_pref === option.value ? 'on' : ''}`} />
-            <span className="g-option-text">
-              <span className="g-option-label">{option.label}</span>
-              <span className="g-option-sub">{option.sub}</span>
-            </span>
-          </button>
-        ))}
+        <div className="g-pillrow">
+          <span className="g-pillrow-label">How and when should it start?</span>
+          {START_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              className={`g-pill ${entry?.start_pref === option.value ? 'active' : ''}`}
+              disabled={!entry}
+              onClick={() =>
+                entry && store.setEntryExtras(entry.uid, { start_pref: option.value })
+              }
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        <textarea
+          className="g-note"
+          aria-label="Anything the DJ should know"
+          placeholder="A note for your DJ, e.g. the confetti drops at the second chorus…"
+          value={entry?.note ?? ''}
+          disabled={!entry}
+          onChange={(event) =>
+            entry && store.setEntryExtras(entry.uid, { note: event.target.value }, true)
+          }
+        />
       </div>
-
-      <label className="g-label" htmlFor="g-opening-note">
-        Anything the DJ should know about this moment?
-      </label>
-      <textarea
-        id="g-opening-note"
-        className="textarea g-textarea"
-        placeholder="e.g. It's the song from our first date — please play the album version, and cut it before the rap part."
-        value={entry?.note ?? ''}
-        disabled={!entry}
-        onChange={(event) =>
-          entry && store.setEntryExtras(entry.uid, { note: event.target.value }, true)
-        }
-      />
     </div>
   );
 }
 
-/* ------------------------------------- 3 · second & third song (mockup 9c) */
+/* ------------------------------------------- 3 · second & third song (9c) */
 
-export function SecondThirdScreen() {
+export function SecondThirdScreen({ onSkip }: { onSkip: () => void }) {
   const store = useGuest();
   const entries = store.listOf('second_third');
-  const slots: { position: number; label: string; required: boolean; placeholder: string }[] = [
-    { position: 0, label: 'Second song', required: true, placeholder: 'e.g. September – Earth, Wind & Fire' },
-    { position: 1, label: 'Third song', required: false, placeholder: 'e.g. Uptown Funk – Bruno Mars' },
-  ];
+  const second = entries.find((item) => item.position === 0);
+  const third = entries.find((item) => item.position === 1);
   return (
-    <div className="g-screen">
-      <h1 className="g-title">Second &amp; third song</h1>
+    <div className="g-col">
+      <h1 className="g-title">When the first dance ends, what plays next?</h1>
       <p className="g-lead">
-        What follows the opening dance? The second song is when everyone joins you on the
-        floor — the third keeps them there.
+        A second song, maybe a third. This is the moment everyone joins you on the floor.
       </p>
-      {slots.map((slot) => {
-        const entry = entries.find((item) => item.position === slot.position);
-        return (
-          <div key={slot.position} className="g-slot">
-            <label className="g-label">
-              {slot.label}
-              <span className={slot.required ? 'g-required' : 'g-optional'}>
-                {slot.required ? 'required' : 'optional'}
-              </span>
-            </label>
-            {entry ? (
-              <SongCard entry={entry} onRemove={() => store.removeEntry(entry.uid)} />
-            ) : (
-              <SongSearch
-                placeholder={slot.placeholder}
-                search={store.search}
-                searchAvailable={store.data?.search_available ?? false}
-                onPick={(pick) => store.pickSong('second_third', slot.position, pick)}
+      <div className="g-body">
+        {second ? (
+          <SongCard
+            entry={second}
+            status="Second song"
+            onRemove={() => store.removeEntry(second.uid)}
+          />
+        ) : (
+          <SongSearch
+            autoFocus
+            placeholder="Search the second song…"
+            search={store.search}
+            searchAvailable={store.data?.search_available ?? false}
+            onPick={(pick) => store.pickSong('second_third', 0, pick)}
+          />
+        )}
+
+        {second &&
+          (third ? (
+            <div className="g-slot">
+              <SongCard
+                entry={third}
+                status="Third song"
+                onRemove={() => store.removeEntry(third.uid)}
               />
-            )}
-          </div>
-        );
-      })}
+            </div>
+          ) : (
+            <>
+              <div className="g-slot">
+                <SongSearch
+                  placeholder="And a third, if you like…"
+                  search={store.search}
+                  searchAvailable={store.data?.search_available ?? false}
+                  onPick={(pick) => store.pickSong('second_third', 1, pick)}
+                />
+              </div>
+              <button className="g-skip" onClick={onSkip}>
+                Two is plenty →
+              </button>
+            </>
+          ))}
+      </div>
     </div>
   );
 }
 
-/* --------------------------------------------- 4 · their top 20 (mockup 9d) */
+/* -------------------------------------------------- 4 · their top 20 (9d) */
+
+/** "eight to go" reads better than "8" on a page that is trying to be warm. */
+const WORDS = [
+  'none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+  'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
+  'eighteen', 'nineteen', 'twenty',
+];
+const spell = (n: number) => WORDS[n] ?? String(n);
 
 export function TopTwentyScreen() {
   const store = useGuest();
   const count = store.listOf('couple_top20').length;
   return (
-    <div className="g-screen">
-      <h1 className="g-title">Your top 20</h1>
+    <div className="g-col g-col-wide">
+      <h1 className="g-title">The twenty songs that are so you.</h1>
       <p className="g-lead">
-        The twenty songs that are simply <em>you</em>. Type straight into any row — order
-        them later with the arrows if you care about ranking.
+        Any order, any era. Type them in, your DJ weaves them through the night.
       </p>
-      <p className="g-count mono">{count} / 20</p>
-      <SongTable kind="couple_top20" rows={20} canAdd canRemove canReorder />
+      <div className="g-body">
+        <SongTable kind="couple_top20" rows={20} canAdd canRemove canReorder />
+      </div>
+      <p className="songtable-count g-count">
+        {count} of 20
+        {count < 20 ? `, ${spell(20 - count)} to go` : ' — the list is complete'}
+      </p>
     </div>
   );
 }
 
-/* -------------------------------------------------- 5 · reveal (mockup 9e) */
+/* --------------------------------------------------------- 5 · reveal (9e) */
 
 const START_LABELS: Record<StartPref, string> = {
   top: 'from the top',
@@ -180,56 +244,61 @@ export function RevealScreen() {
   const opening = store.listOf('opening_dance')[0];
   const secondThird = store.listOf('second_third');
   const top20 = store.listOf('couple_top20');
+  const missing = 20 - top20.length;
   return (
-    <div className="g-screen">
-      <h1 className="g-title">Here's your soundtrack so far</h1>
-      <p className="g-lead">
-        Read it back, let it sink in. If something feels off, hop back and change it —
-        nothing is locked.
-      </p>
+    <div className="g-col g-col-wide g-col-center">
+      <p className="g-eyebrow">Your top 20 · saved</p>
+      <h1 className="g-title g-title-lg">What a beautiful twenty.</h1>
+      <p className="g-lead">Read it back once. This is you two, in music.</p>
 
-      <h2 className="g-subtitle">The opening</h2>
-      {opening ? (
+      {opening && (
         <>
+          <p className="reveal-section">The opening</p>
           <RevealRow entry={opening} />
-          <p className="reveal-note">
-            Played {opening.start_pref ? START_LABELS[opening.start_pref] : 'from the top'}
-            {opening.note ? (
-              <>
-                {' — '}
-                <em>“{opening.note}”</em>
-              </>
-            ) : null}
+          <p className="reveal-line reveal-line-tight">
+            played {opening.start_pref ? START_LABELS[opening.start_pref] : 'from the top'}
+            {opening.note ? ` — “${opening.note}”` : ''}
           </p>
         </>
-      ) : (
-        <p className="muted">No opening dance picked yet.</p>
       )}
 
-      <h2 className="g-subtitle">Then</h2>
-      {secondThird.length ? (
-        secondThird.map((entry) => (
-          <RevealRow key={entry.uid} entry={entry} prefix={entry.position === 0 ? '2nd' : '3rd'} />
-        ))
-      ) : (
-        <p className="muted">No second song yet.</p>
-      )}
-
-      <h2 className="g-subtitle">Your top {top20.length || 20}</h2>
-      {top20.length ? (
-        <div className="reveal-grid">
-          {top20.map((entry, index) => (
-            <RevealRow key={entry.uid} entry={entry} prefix={String(index + 1)} />
+      {secondThird.length > 0 && (
+        <>
+          <p className="reveal-section">Then</p>
+          {secondThird.map((entry) => (
+            <RevealRow key={entry.uid} entry={entry} />
           ))}
-        </div>
+        </>
+      )}
+
+      {top20.length > 0 ? (
+        <>
+          <div className="reveal-grid">
+            {[
+              top20.slice(0, Math.ceil(top20.length / 2)),
+              top20.slice(Math.ceil(top20.length / 2)),
+            ].map((half, column) => (
+              <div className="reveal-col" key={column}>
+                {half.map((entry) => (
+                  <RevealRow key={entry.uid} entry={entry} />
+                ))}
+              </div>
+            ))}
+          </div>
+          {missing > 0 && (
+            <p className="reveal-line">
+              and room for {spell(missing)} more, whenever they come to you
+            </p>
+          )}
+        </>
       ) : (
-        <p className="muted">The top-20 table is still empty.</p>
+        <p className="reveal-line">your top twenty is still a blank page — that's allowed</p>
       )}
     </div>
   );
 }
 
-/* ------------------------------------------ 6 · friends' top 20 (mockup 9f) */
+/* -------------------------------------------- 6 · friends' top 20 (9f) */
 
 export function FriendsScreen() {
   const store = useGuest();
@@ -244,169 +313,193 @@ export function FriendsScreen() {
   }, []);
   const count = store.listOf('friends_top20').length;
   return (
-    <div className="g-screen">
-      <h1 className="g-title">Your friends' top 20</h1>
+    <div className="g-col g-col-wide">
+      <h1 className="g-title">The twenty songs your friends can't sit down to.</h1>
       <p className="g-lead">
-        One shared link, twenty spots. Send it to whoever should have a say — everyone
-        sees the same list grow, and you keep the final word here.
+        Share one link, they type their picks, everything lands right here.
       </p>
-      {link && (
-        <>
-          <label className="g-label">The link to share</label>
-          <CopyLink url={link} />
-        </>
-      )}
-      <p className="g-count mono">{count} / 20</p>
-      <SongTable kind="friends_top20" rows={20} canAdd canRemove canReorder showSource />
-      <p className="hint">
-        Friends can add songs and see each other's picks; only you two can remove or
-        reorder them.
+      {link && <CopyLink url={link} />}
+      <div className="g-body">
+        <SongTable kind="friends_top20" rows={20} canAdd canRemove canReorder showSource />
+      </div>
+      <p className="songtable-count g-count">
+        {count} of 20 · friends can add, only you two can remove or reorder
       </p>
     </div>
   );
 }
 
-/* ---------------------------------------------- 7 · never list (mockup 9g) */
+/* ------------------------------------------------------ 7 · never list (9g) */
 
 export function NeverScreen() {
   const store = useGuest();
   const blocklist = store.data?.blocklist ?? [];
+  const rows = Math.max(blocklist.length + 2, 4);
   return (
-    <div className="g-screen">
-      <h1 className="g-title">The never list</h1>
-      <p className="g-lead">
-        Songs that must not be played — not even by request, not even the remix. Add as
-        many as you like.
-      </p>
-      <SongSearch
-        placeholder="e.g. Macarena – Los Del Rio"
-        search={store.search}
-        searchAvailable={store.data?.search_available ?? false}
-        onPick={(pick) => store.addBlock(pick)}
-      />
-      <div className="blocklist">
-        {blocklist.map((block) => (
-          <div key={block.uid} className="songcard blockcard">
-            {block.art_url ? (
-              <img className="songcard-art" src={block.art_url} alt="" loading="lazy" />
-            ) : (
-              <span className="songcard-art songcard-art-empty" aria-hidden>
-                ♪
-              </span>
-            )}
-            <span className="songcard-text">
-              <span className="songcard-title">{block.title}</span>
-              <span className="songcard-sub">{block.artist || 'as typed'}</span>
-            </span>
-            <button
-              className="icon-btn songcard-remove"
-              aria-label="Allow this song again"
-              onClick={() => store.removeBlock(block.uid)}
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-        {!blocklist.length && (
-          <p className="muted">Nothing banned yet — lucky DJ.</p>
-        )}
+    <div className="g-col">
+      <h1 className="g-title">Which songs are banned from your dance floor, forever?</h1>
+      <p className="g-lead">Every wedding has a few. No judgement, your DJ guards the door.</p>
+      <div className="g-body">
+        {/*
+          Same ruled list as the top 20, but crossed out rather than numbered —
+          these are the only lines on the whole flow that mean "not this".
+        */}
+        <div className="songtable songtable-single">
+          {Array.from({ length: rows }, (_, index) => {
+            const block = blocklist[index];
+            return (
+              <div
+                key={block?.uid ?? `empty-${index}`}
+                className={`songtable-row ${!block && index === blocklist.length ? 'filling' : ''}`}
+              >
+                <span className="songtable-cross" aria-hidden>
+                  ✗
+                </span>
+                <span className="songtable-cell">
+                  {block ? (
+                    <>
+                      <span className="songtable-value">
+                        {block.title}
+                        {block.artist && <span className="songtable-artist">, {block.artist}</span>}
+                      </span>
+                      <span className="songtable-actions">
+                        <button
+                          className="icon-btn"
+                          aria-label="Allow this song again"
+                          onClick={() => store.removeBlock(block.uid)}
+                        >
+                          <Close size={13} />
+                        </button>
+                      </span>
+                    </>
+                  ) : index === blocklist.length ? (
+                    <SongSearch
+                      compact
+                      placeholder="Type the song you never want to hear…"
+                      search={store.search}
+                      searchAvailable={store.data?.search_available ?? false}
+                      onPick={(pick) => store.addBlock(pick)}
+                    />
+                  ) : (
+                    <span className="songtable-open" />
+                  )}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
 
-/* -------------------------------------------------- 8 · finale (mockup 9h) */
+/* ---------------------------------------------------------- 8 · finale (9h) */
 
 export function FinaleScreen({ onFinish }: { onFinish: () => void }) {
   const store = useGuest();
   const data = store.data!;
   const links = store.listOf('playlist_links');
   const [url, setUrl] = useState('');
+  const valid = /^https?:\/\//i.test(url.trim());
 
   function addLink() {
-    const trimmed = url.trim();
-    if (!/^https?:\/\//i.test(trimmed)) return;
-    const nextPosition =
-      links.reduce((max, item) => Math.max(max, item.position), -1) + 1;
-    store.pickSong('playlist_links', nextPosition, { free_text: trimmed });
+    if (!valid) return;
+    const nextPosition = links.reduce((max, item) => Math.max(max, item.position), -1) + 1;
+    store.pickSong('playlist_links', nextPosition, { free_text: url.trim() });
     setUrl('');
   }
 
   return (
-    <div className="g-screen">
-      <h1 className="g-title">The finale</h1>
-      <p className="g-lead">Last page — the guarantees, and how your crowd parties.</p>
+    <div className="g-col">
+      <h1 className="g-title">Okay, picture this.</h1>
+      <p className="g-lead">
+        You have been listening and talking to people the entire day. Your feet hurt, your
+        cheeks ache from smiling. Which songs, even that exhausted, would you still scream
+        and shout from the first word to the very last?
+      </p>
+      <div className="g-body">
+        <SongTable kind="must_plays" rows={5} canAdd canRemove canReorder single />
 
-      <h2 className="g-subtitle">Up to five must-plays</h2>
-      <p className="hint">These are promises: they will be played, whatever the night does.</p>
-      <SongTable kind="must_plays" rows={5} canAdd canRemove canReorder />
-
-      <h2 className="g-subtitle">How do you party?</h2>
-      <textarea
-        className="textarea g-textarea"
-        placeholder="e.g. Open bar and a loud 90s hip-hop crowd. Grandparents leave around 23:00 — after that, anything goes. No slow songs before midnight."
-        value={data.briefing_text ?? ''}
-        onChange={(event) => store.patchCouple({ briefing_text: event.target.value })}
-      />
-
-      <h2 className="g-subtitle">Playlists we already have</h2>
-      <p className="hint">Optional — paste links to Spotify playlists that feel like you.</p>
-      <div className="g-linkrow">
-        <input
-          className="input g-input"
-          placeholder="https://open.spotify.com/playlist/…"
-          value={url}
-          onChange={(event) => setUrl(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') addLink();
-          }}
+        <label className="g-fieldlabel" htmlFor="g-briefing">
+          And how do you two party? Tell it like a story, your DJ reads every line.
+        </label>
+        <textarea
+          id="g-briefing"
+          className="textarea"
+          placeholder="Sweaty sing-alongs early in the night, hands-in-the-air classics when the parents leave, and after midnight it may get harder and faster…"
+          value={data.briefing_text ?? ''}
+          onChange={(event) => store.patchCouple({ briefing_text: event.target.value })}
         />
-        <button className="btn" disabled={!/^https?:\/\//i.test(url.trim())} onClick={addLink}>
-          Add link
-        </button>
-      </div>
-      {links.map((entry) => (
-        <div key={entry.uid} className="g-linkitem">
-          <a href={entry.free_text ?? '#'} target="_blank" rel="noreferrer">
-            {entry.free_text}
-          </a>
-          <button
-            className="icon-btn songcard-remove"
-            aria-label="Remove link"
-            onClick={() => store.removeEntry(entry.uid)}
-          >
-            ✕
+
+        <label className="g-fieldlabel" htmlFor="g-playlist">
+          And if you have playlists that already sound like you, just drop the links.
+        </label>
+        <div className="g-linkrow">
+          <input
+            id="g-playlist"
+            className="input"
+            placeholder="Paste a Spotify playlist link…"
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') addLink();
+            }}
+          />
+          <button className="btn" disabled={!valid} onClick={addLink}>
+            Add link
           </button>
         </div>
-      ))}
+        {links.length > 0 && (
+          <div className="g-linkchips">
+            {links.map((entry) => (
+              <span key={entry.uid} className="g-linkchip">
+                <a href={entry.free_text ?? '#'} target="_blank" rel="noreferrer">
+                  {entry.free_text}
+                </a>
+                <button
+                  className="icon-btn"
+                  aria-label="Remove link"
+                  onClick={() => store.removeEntry(entry.uid)}
+                >
+                  <Close size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
-      <div className="g-finish">
-        <button className="btn btn-primary btn-block g-finish-btn" onClick={onFinish}>
-          Finish — everything is saved
+      <div className="g-nav">
+        <span />
+        <button className="btn btn-primary" onClick={onFinish}>
+          Finish your story
         </button>
       </div>
     </div>
   );
 }
 
-/* --------------------------------------------------------------- 9 · done */
+/* ------------------------------------------------------------------ 9 · done */
 
 export function DoneScreen({ onReview }: { onReview: () => void }) {
   const store = useGuest();
   const data = store.data!;
   return (
-    <div className="g-screen g-done">
+    <div className="g-col g-col-center">
       <div className="g-done-mark" aria-hidden>
         ✓
       </div>
-      <h1 className="g-title">That's it — thank you!</h1>
+      <h1 className="g-title g-title-lg">That's your story, told.</h1>
       <p className="g-lead">
-        Every answer is saved and already with your DJ. You can come back with this same
-        link to change anything until {data.wedding_date || 'the wedding'}.
+        Every answer is saved and already with your DJ. Come back to this same link any
+        time before {data.wedding_date ? formatWeddingDate(data.wedding_date) : 'the wedding'} to
+        change your mind.
       </p>
-      <button className="btn" onClick={onReview}>
-        Review my answers from the start
-      </button>
+      <div className="g-welcome-cta">
+        <button className="btn" onClick={onReview}>
+          Read it back from the start →
+        </button>
+      </div>
     </div>
   );
 }

@@ -3,26 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rekord Match — your wedding music</title>
+    <title>Your wedding music</title>
+    <meta name="theme-color" content="#faf8f3" />
     <!-- A magic link is a secret in the URL; never hand it on in a Referer. -->
     <meta name="referrer" content="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Playfair Display carries every headline and the couple's own names; DM Sans
+      is the running text; JetBrains Mono is the letterspaced meta (the date, the
+      save state, row numbers). See src/styles/tokens.css.
+    -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <script>
-      // Apply the saved theme before first paint so there's no flash. Default light.
-      (function () {
-        try {
-          var t = localStorage.getItem('rekord-theme');
-          document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light';
-        } catch (e) {
-          document.documentElement.dataset.theme = 'light';
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>
