@@ -182,7 +182,7 @@ function useGuestStore(token: string) {
       free_text: fromSearch ? null : pick.free_text,
       note: existing?.note ?? null,
       start_pref: existing?.start_pref ?? null,
-      source_token_kind: data?.scope === 'friends' ? 'friend' : 'couple',
+      source_token_kind: data?.scope === 'FRIENDS' ? 'friend' : 'couple',
       created_at: existing?.created_at ?? now,
       updated_at: now,
     };

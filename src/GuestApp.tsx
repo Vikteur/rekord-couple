@@ -216,7 +216,7 @@ function GuestInner({ token }: { token: string }) {
       </div>
     );
   }
-  return store.data.scope === 'friends' ? <FriendsView /> : <CoupleWizard token={token} />;
+  return store.data.scope === 'FRIENDS' ? <FriendsView /> : <CoupleWizard token={token} />;
 }
 
 /** Everything behind a magic link (`/g/<token>`) — couple wizard or friends view. */
