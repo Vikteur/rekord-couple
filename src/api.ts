@@ -1,4 +1,11 @@
-import type { BlockEntry, CoupleEntry, GuestState, ListKind, SongHit } from './types';
+import type {
+  BlockEntry,
+  CoupleEntry,
+  GuestState,
+  ListKind,
+  PortalIdentity,
+  SongHit,
+} from './types';
 
 /**
  * Where the backend lives. Empty (the default) means "same origin" — in
@@ -63,16 +70,39 @@ async function parse<T>(response: Response): Promise<T> {
  */
 export class GuestApi {
   private base: string;
+  private token: string;
 
   constructor(token: string) {
+    this.token = token;
     this.base = `${API_BASE}/api/guest/${encodeURIComponent(token)}`;
   }
 
   private request<T>(path: string, init?: RequestInit & { keepalive?: boolean }): Promise<T> {
     return fetch(`${this.base}${path}`, {
+      // The portal session is an httpOnly cookie, so it has to be sent
+      // explicitly. Without this the intake is a code prompt that never ends.
+      credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       ...init,
     }).then((response) => parse<T>(response));
+  }
+
+  /**
+   * Exchange the link's token and the couple's access code for a session.
+   *
+   * Every failure here looks the same from the outside — unknown token,
+   * revoked token and wrong code all answer 401 `BAD_LINK` — so that this
+   * cannot be used to find out which links exist. The one exception is a
+   * revoked link opened with the *right* code, which gets a straight answer
+   * because whoever typed it has plainly been given the card.
+   */
+  openSession(code: string): Promise<PortalIdentity> {
+    return fetch(`${API_BASE}/api/portal/session`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: this.token, code }),
+    }).then((response) => parse<PortalIdentity>(response));
   }
 
   state(): Promise<GuestState> {

@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -67,18 +68,38 @@ function useGuestStore(token: string) {
   const saver = saverRef.current;
   const pendingCouple = useRef<CoupleFields>({});
 
-  useEffect(() => {
+  const [needsCode, setNeedsCode] = useState(false);
+
+  /**
+   * Load the intake, or find out we need the access code first.
+   *
+   * Any 401 means "ask for the code" rather than "this link is broken". The
+   * server answers identically for an unknown link, a switched-off link and a
+   * missing session, precisely so that this endpoint cannot be used to find
+   * out which links exist — so the client cannot tell them apart either, and
+   * should not pretend to. Someone holding a guessed token gets a code prompt
+   * they will never get past, and learns nothing from it.
+   */
+  const load = useCallback(() => {
+    setProblem(null);
     api
       .state()
-      .then(setData)
+      .then((fresh) => {
+        setNeedsCode(false);
+        setData(fresh);
+      })
       .catch((error: unknown) => {
-        if (error instanceof ApiError) {
+        if (error instanceof ApiError && error.status === 401) {
+          setNeedsCode(true);
+        } else if (error instanceof ApiError) {
           setProblem({ status: error.status, code: error.code, message: error.message });
         } else {
           setProblem({ status: 0, code: 'OFFLINE', message: 'Could not reach the server.' });
         }
       });
   }, [api]);
+
+  useEffect(load, [load]);
 
   // A closing tab (or a phone switching apps) pushes pending writes out with
   // keepalive requests — the "nothing is lost mid-answer" guarantee.
@@ -322,6 +343,10 @@ function useGuestStore(token: string) {
     token,
     data,
     problem,
+    needsCode,
+    api,
+    /** Called once the access code is accepted, to load the intake behind it. */
+    reload: load,
     saveState,
     search: (q: string) => api.search(q),
     listOf,

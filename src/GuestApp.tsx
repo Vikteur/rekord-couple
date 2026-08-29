@@ -13,6 +13,7 @@ import {
   WelcomeScreen,
 } from './screens';
 import { GuestProvider, useGuest, type LinkProblem } from './store';
+import { CodeGate } from './CodeGate';
 
 /** The couple's eight pages, in the order they meet them (mockups 9a–9h). */
 const STEPS = [
@@ -204,6 +205,9 @@ function CoupleWizard({ token }: { token: string }) {
 function GuestInner({ token }: { token: string }) {
   const store = useGuest();
   if (store.problem) return <ProblemView problem={store.problem} />;
+  // Asked once per device, not once per visit: the server sets a portal cookie
+  // and the intake works for the rest of the month without asking again.
+  if (store.needsCode) return <CodeGate api={store.api} onOpen={store.reload} />;
   if (!store.data) {
     return (
       <div className="guest-shell">

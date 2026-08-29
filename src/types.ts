@@ -33,3 +33,6 @@ export type SongHit = S['SongHit']
  * and say so, instead of looking broken when Spotify credentials are missing.
  */
 export type GuestState = S['PortalState']
+
+/** Who a portal session belongs to, returned when the access code is accepted. */
+export type PortalIdentity = S['PortalIdentity']

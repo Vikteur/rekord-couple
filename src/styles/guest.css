@@ -839,3 +839,56 @@ button.g-date-input {
 .reveal-line-tight {
   margin-top: 8px;
 }
+
+/* ------------------------------------------------------- the access code */
+/*
+ * The one screen between the link and the intake. Deliberately plain: it is
+ * asked once per device, and anything more elaborate would make it feel like
+ * a security wall rather than the small courtesy it is.
+ */
+.g-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 320px;
+}
+.g-gate-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--faint);
+}
+.g-gate-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 12px 14px;
+  /* Monospace and spaced out: this is a code being copied off a card, and the
+     usual reason for a retry is a letter read as another letter. */
+  font-family: var(--font-mono);
+  font-size: 17px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.g-gate-input:focus {
+  outline: none;
+  border-color: var(--gold-soft);
+}
+.g-gate-input[aria-invalid='true'] {
+  border-color: #b4726f;
+}
+.g-gate-error {
+  margin: 0;
+  font-size: 13px;
+  color: #96534f;
+}
+.g-gate-button {
+  margin-top: 2px;
+}
+.g-gate-note {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
