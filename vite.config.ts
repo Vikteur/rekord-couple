@@ -6,8 +6,9 @@ import react from '@vitejs/plugin-react';
 // URL itself stays /g/<token> — nginx serves this index.html for it.
 const BASE = '/guest/';
 
-// Where the API (Vikteur/spotify-to-rekordbox) is during `npm run dev`.
-const apiTarget = process.env.API_URL ?? `http://127.0.0.1:${process.env.API_PORT ?? '8000'}`;
+// Where the API (Vikteur/rekord-api) is during `npm run dev`. 8080 is Quarkus's
+// default; the e2e harness overrides it to point at a throwaway instance.
+const apiTarget = process.env.API_URL ?? `http://127.0.0.1:${process.env.API_PORT ?? '8080'}`;
 
 /**
  * Production nginx answers every /g/<token> with this build's index.html.
